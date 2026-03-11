@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Truck Steering</title>
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: sans-serif;
+    background: skyblue;
+    color: #fff;
+    margin-top: 40px;
+  }
+  #steering-container {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    
+  }
+  #wheel-img {
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    cursor: grab;
+    transform-origin: 50% 50%;
+    user-select: none;
+    border-radius: 50%;
+    transition-property: 0.1px;
+    
+    
+  }
+  #wheel-img:active {
+    cursor: grabbing;
+    
+  }
+  #value {
+    margin-top: 150px;
+    font-size: 22px;
+  }
+</style>
+</head>
+<body>
+
+<div id="steering-container">
+  <img id="wheel-img"
+       src="./img/streenig/streenig.png"
+       alt="Steering Wheel">
+</div>
+<div id="value">Ro: 0°</div>
+
+
+
+
+<script>
+const wheelImg = document.getElementById('wheel-img');
+const valueDisplay = document.getElementById('value');
+
+let isDragging = false;
+let lastAngle = 0;
+let currentRotation = 0;
+const MAX_ROTATION = 169;
+
+function getAngle(x, y, rect) {
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const dx = x - cx;
+  const dy = y - cy;
+  return Math.atan2(dy, dx) * (180/ Math.PI);
+}
+
+function startDrag(x, y) {
+  const rect = wheelImg.getBoundingClientRect();
+  isDragging = true;
+  lastAngle = getAngle(x, y, rect);
+}
+
+function dragMove(x, y) {
+  if (!isDragging) return;
+  const rect = wheelImg.getBoundingClientRect();
+  const angle = getAngle(x, y, rect);
+  
+  
+  let delta = angle - lastAngle;
+  if (delta > 180) delta -= 360;
+  if (delta < -180) delta += 360;
+  currentRotation += delta;
+  lastAngle = angle;
+
+  if (currentRotation > MAX_ROTATION) currentRotation = MAX_ROTATION;
+  if (currentRotation < -MAX_ROTATION) currentRotation = -MAX_ROTATION;
+
+  wheelImg.style.transform = `rotate(${currentRotation}deg)`;
+  valueDisplay.textContent = `Ro: ${Math.round(currentRotation)}°`;
+}
+
+function endDrag() {
+  if (!isDragging) return;
+  isDragging = false;
+  currentRotation = 0;
+  wheelImg.style.transform = `rotate(0deg)`;
+  valueDisplay.textContent = `Ro: 0°`;
+}
+
+wheelImg.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
+document.addEventListener('mousemove', (e) => dragMove(e.clientX, e.clientY));
+document.addEventListener('mouseup', endDrag);
+
+wheelImg.addEventListener('touchstart', (e) => {
+  const touch = e.touches[0];
+  startDrag(touch.clientX, touch.clientY);
+});
+document.addEventListener('touchmove', (e) => {
+  if (!isDragging) return;
+  const touch = e.touches[0];
+  dragMove(touch.clientX, touch.clientY);
+});
+document.addEventListener('touchend', endDrag);
+</script>
+
+</body>
+</html>
